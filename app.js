@@ -4,9 +4,9 @@ const validConfig =
   CONFIG.url &&
   CONFIG.anonKey &&
   CONFIG.adminEmail &&
-  !CONFIG.url.includes("COLE_AQUI") &&
-  !CONFIG.anonKey.includes("COLE_AQUI") &&
-  !CONFIG.adminEmail.includes("SEU_EMAIL");
+  !CONFIG.url.includes("https://hwhihebohjuwooeehivq.supabase.co") &&
+  !CONFIG.anonKey.includes("sb_publishable_CvZndoci7xeL9WJyKWtAGg_EOeilYFe") &&
+  !CONFIG.adminEmail.includes("adrian.fox035@gmail.com");
 
 const supabaseClient = validConfig
   ? window.supabase.createClient(CONFIG.url, CONFIG.anonKey)

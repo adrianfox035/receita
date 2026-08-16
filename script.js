@@ -204,94 +204,146 @@ function updateAdminUI() {
 }
 
 async function login(password) {
-  if (!supabaseClient) {
-    toast("Configure o Supabase antes de entrar como admin.");
-    return;
-  }
-
-  const button = $("login-form").querySelector("button[type='submit']");
-  button.disabled = true;
-
-  try {
-    if (!password) {
-      toast("Digite a senha.");
-      return;
-    }
-
-    /*
-      O administrador não precisa informar e-mail.
-
-      O Anonymous Auth cria uma sessão autenticada temporária.
-      A senha é verificada exclusivamente no PostgreSQL através
-      da função RPC verify_admin_password.
-
-      A senha NÃO está armazenada neste JavaScript.
-    */
-
-    const { data: { session }, error: sessionError } =
-      await supabaseClient.auth.getSession();
-
-    let currentSession = session;
-
-    if (!currentSession) {
-      const { data, error } =
-        await supabaseClient.auth.signInAnonymously();
-
-      if (error) {
-        console.error("Anonymous Auth:", error);
-        toast("Não foi possível iniciar a sessão.");
+    if (!supabaseClient) {
+        toast("Configure o Supabase antes de entrar como admin.");
         return;
-      }
-
-      currentSession = data.session;
     }
 
-    if (!currentSession) {
-      toast("Não foi possível criar a sessão.");
-      return;
-    }
+    const button = $("login-form").querySelector(
+        "button[type='submit']"
+    );
 
-    const { data: authorized, error } =
-      await supabaseClient.rpc(
-        "verify_admin_password",
-        {
-          p_password: password
+    button.disabled = true;
+
+    try {
+        if (!password || !password.trim()) {
+            toast("Digite a senha.");
+            return;
         }
-      );
 
-    if (error) {
-      console.error("Verificação da senha:", error);
-      toast("Erro ao verificar a senha no Supabase.");
-      return;
+        /*
+         * 1. Verifica se já existe uma sessão.
+         */
+        const {
+            data: sessionData,
+            error: sessionError
+        } = await supabaseClient.auth.getSession();
+
+        if (sessionError) {
+            console.error(
+                "Erro ao obter sessão:",
+                sessionError
+            );
+
+            toast("Erro ao verificar a sessão.");
+            return;
+        }
+
+        /*
+         * 2. Se não houver sessão, cria uma sessão anônima.
+         *
+         * Isso substitui completamente o antigo
+         * signInWithPassword() e elimina a necessidade
+         * de e-mail.
+         */
+        if (!sessionData.session) {
+            const {
+                data: anonymousData,
+                error: anonymousError
+            } = await supabaseClient.auth.signInAnonymously();
+
+            if (anonymousError) {
+                console.error(
+                    "Erro no Anonymous Auth:",
+                    anonymousError
+                );
+
+                toast(
+                    "Não foi possível iniciar a sessão."
+                );
+
+                return;
+            }
+
+            if (!anonymousData.session) {
+                toast(
+                    "O Supabase não criou uma sessão."
+                );
+
+                return;
+            }
+        }
+
+        /*
+         * 3. A senha é verificada no PostgreSQL.
+         *
+         * A senha NÃO fica neste JavaScript.
+         */
+        const {
+            data: authorized,
+            error: passwordError
+        } = await supabaseClient.rpc(
+            "verify_admin_password",
+            {
+                p_password: password
+            }
+        );
+
+        if (passwordError) {
+            console.error(
+                "Erro na verificação da senha:",
+                passwordError
+            );
+
+            toast(
+                "Erro ao verificar a senha no Supabase."
+            );
+
+            return;
+        }
+
+        /*
+         * 4. Senha incorreta.
+         */
+        if (authorized !== true) {
+            state.admin = false;
+
+            updateAdminUI();
+
+            toast("Senha incorreta.");
+
+            return;
+        }
+
+        /*
+         * 5. Senha correta.
+         */
+        state.admin = true;
+
+        $("admin-password").value = "";
+
+        closeModal("login-modal");
+
+        updateAdminUI();
+
+        renderRecipes();
+
+        toast("Modo admin ativado.");
+
+    } catch (error) {
+        console.error(
+            "Erro inesperado no login:",
+            error
+        );
+
+        toast(
+            "Não foi possível entrar como administrador."
+        );
+
+    } finally {
+        button.disabled = false;
     }
-
-    if (authorized !== true) {
-      state.admin = false;
-      updateAdminUI();
-      toast("Senha incorreta.");
-      return;
-    }
-
-    state.admin = true;
-
-    $("admin-password").value = "";
-
-    closeModal("login-modal");
-
-    updateAdminUI();
-    renderRecipes();
-
-    toast("Modo admin ativado.");
-
-  } catch (error) {
-    console.error("Erro no login:", error);
-    toast("Não foi possível entrar como administrador.");
-
-  } finally {
-    button.disabled = false;
-  }
 }
-
   const button = $("login-form").querySelector("button[type='submit']");
   button.disabled = true;
 

@@ -1,5 +1,5 @@
 const CONFIG = window.SUPABASE_CONFIG || {};
-
+ 
 const validConfig =
   CONFIG.url &&
   CONFIG.anonKey &&

@@ -344,54 +344,6 @@ async function login(password) {
         button.disabled = false;
     }
 }
-  const button = $("login-form").querySelector("button[type='submit']");
-  button.disabled = true;
-
-  /*
-    O usuário não precisa digitar o e-mail.
-    O e-mail do administrador fica somente na configuração do site
-    e é usado internamente pelo Supabase Auth.
-
-    O Supabase Auth exige um identificador (e-mail ou telefone) junto
-    da senha; portanto, não existe signInWithPassword(password) puro.
-    Para manter a interface somente com senha, usamos o e-mail
-    configurado internamente.
-  */
-
-  button.disabled = false;
-
-  if (error) {
-    console.error("Supabase Auth:", error);
-    toast("Senha incorreta ou conta do administrador não encontrada.");
-    return;
-  }
-
-  const { data: admin, error: adminError } = await supabaseClient
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-
-  if (adminError) {
-    console.error("Verificação de admin:", adminError);
-    await supabaseClient.auth.signOut();
-    toast("Login OK, mas a tabela de administradores não pôde ser consultada.");
-    return;
-  }
-
-  if (!admin) {
-    await supabaseClient.auth.signOut();
-    toast("Esta conta não está cadastrada como administrador.");
-    return;
-  }
-
-  state.admin = true;
-  $("admin-password").value = "";
-  closeModal("login-modal");
-  updateAdminUI();
-  renderRecipes();
-  toast("Modo admin ativado.");
-}
 
 async function logout() {
   if (supabaseClient) {

@@ -1,12 +1,14 @@
-const CONFIG = window.SUPABASE_CONFIG || {};
- 
-const validConfig =
+const CONFIG = {
+  url: "https://hwhihebohjuwooeehivq.supabase.co",
+  anonKey: "sb_publishable_CvZndoci7xeL9WJyKWtAGg_EOeilYFe"
+};
+
+const validConfig = Boolean(
   CONFIG.url &&
   CONFIG.anonKey &&
-  CONFIG.adminEmail &&
-  !CONFIG.url.includes("https://hwhihebohjuwooeehivq.supabase.co") &&
-  !CONFIG.anonKey.includes("sb_publishable_CvZndoci7xeL9WJyKWtAGg_EOeilYFe") &&
-  !CONFIG.adminEmail.includes("adrian.fox035@gmail.com");
+  CONFIG.url.startsWith("https://") &&
+  CONFIG.anonKey.startsWith("sb_publishable_")
+);
 
 const supabaseClient = validConfig
   ? window.supabase.createClient(CONFIG.url, CONFIG.anonKey)
@@ -203,9 +205,92 @@ function updateAdminUI() {
 
 async function login(password) {
   if (!supabaseClient) {
-    toast("Configure primeiro o config.js do Supabase.");
+    toast("Configure o Supabase antes de entrar como admin.");
     return;
   }
+
+  const button = $("login-form").querySelector("button[type='submit']");
+  button.disabled = true;
+
+  try {
+    if (!password) {
+      toast("Digite a senha.");
+      return;
+    }
+
+    /*
+      O administrador não precisa informar e-mail.
+
+      O Anonymous Auth cria uma sessão autenticada temporária.
+      A senha é verificada exclusivamente no PostgreSQL através
+      da função RPC verify_admin_password.
+
+      A senha NÃO está armazenada neste JavaScript.
+    */
+
+    const { data: { session }, error: sessionError } =
+      await supabaseClient.auth.getSession();
+
+    let currentSession = session;
+
+    if (!currentSession) {
+      const { data, error } =
+        await supabaseClient.auth.signInAnonymously();
+
+      if (error) {
+        console.error("Anonymous Auth:", error);
+        toast("Não foi possível iniciar a sessão.");
+        return;
+      }
+
+      currentSession = data.session;
+    }
+
+    if (!currentSession) {
+      toast("Não foi possível criar a sessão.");
+      return;
+    }
+
+    const { data: authorized, error } =
+      await supabaseClient.rpc(
+        "verify_admin_password",
+        {
+          p_password: password
+        }
+      );
+
+    if (error) {
+      console.error("Verificação da senha:", error);
+      toast("Erro ao verificar a senha no Supabase.");
+      return;
+    }
+
+    if (authorized !== true) {
+      state.admin = false;
+      updateAdminUI();
+      toast("Senha incorreta.");
+      return;
+    }
+
+    state.admin = true;
+
+    $("admin-password").value = "";
+
+    closeModal("login-modal");
+
+    updateAdminUI();
+    renderRecipes();
+
+    toast("Modo admin ativado.");
+
+  } catch (error) {
+    console.error("Erro no login:", error);
+    toast("Não foi possível entrar como administrador.");
+
+  } finally {
+    button.disabled = false;
+  }
+}
 
   const button = $("login-form").querySelector("button[type='submit']");
   button.disabled = true;
@@ -220,10 +305,6 @@ async function login(password) {
     Para manter a interface somente com senha, usamos o e-mail
     configurado internamente.
   */
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: CONFIG.adminEmail,
-    password
-  });
 
   button.disabled = false;
 

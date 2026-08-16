@@ -28,10 +28,10 @@ IMPORTANTE:
 */
 
 window.SUPABASE_CONFIG = {
-  url: "COLE_AQUI_A_URL_DO_SEU_PROJETO",
-  anonKey: "COLE_AQUI_A_CHAVE_ANON_PUBLIC",
+  url: "https://hwhihebohjuwooeehivq.supabase.co",
+  anonKey: "sb_publishable_CvZndoci7xeL9WJyKWtAGg_EOeilYFeC",
 
   // E-mail do usuário administrador criado em:
   // Supabase > Authentication > Users
-  adminEmail: "SEU_EMAIL_ADMIN_AQUI"
+  adminEmail: "adrian.fox035@gmail.com"
 };

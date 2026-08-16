@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Livro de Receitas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-brand">🍽️</div>
+    <h1 id="site-title">Meu Livro de Receitas</h1>
+    <button id="admin-button" class="admin-button" type="button">admin</button>
+  </header>
+
+  <main>
+    <!-- HUB -->
+    <section id="home-view" class="view">
+      <div class="hub-head">
+        <div>
+          <h2>🍴 Receitas</h2>
+          <p>Escolha uma receita ou crie uma nova.</p>
+        </div>
+
+        <div class="hub-actions">
+          <button id="new-recipe-button" class="action-button" type="button">＋ Nova receita</button>
+          <button id="settings-button" class="action-button hidden" type="button">⚙ Personalizar</button>
+          <button id="logout-button" class="action-button hidden" type="button">Sair</button>
+        </div>
+      </div>
+
+      <div id="recipe-grid" class="recipe-grid"></div>
+
+      <div id="empty-state" class="empty-state hidden">
+        <div class="empty-folder">🍳</div>
+        <strong>Nenhuma receita ainda</strong>
+        <span>Entre como admin para adicionar a primeira.</span>
+      </div>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="editor-view" class="view hidden">
+      <div class="editor-head">
+        <button id="back-home-button" class="action-button" type="button">← Voltar</button>
+        <div>
+          <h2 id="editor-title">🍳 Nova receita</h2>
+          <p>Preencha os dados da receita.</p>
+        </div>
+      </div>
+
+      <form id="recipe-form" class="editor-card">
+        <label class="label" for="recipe-name">Nome da receita</label>
+        <input id="recipe-name" class="input" maxlength="120" required placeholder="Ex.: Bolo de chocolate">
+
+        <label class="label">Foto da comida</label>
+        <div class="image-row">
+          <input id="recipe-image" type="file" accept="image/*" hidden>
+          <button id="select-image-button" class="action-button" type="button">🖼️ Selecionar imagem</button>
+          <span id="image-name">Nenhuma imagem selecionada</span>
+        </div>
+
+        <div id="image-preview-wrap" class="image-preview-wrap hidden">
+          <img id="image-preview" alt="Pré-visualização da receita">
+          <button id="remove-image-button" class="remove-image" type="button">×</button>
+        </div>
+
+        <div class="editor-section">
+          <h3>🧂 Ingredientes</h3>
+          <p>Adicione quantos ingredientes quiser.</p>
+          <div id="ingredients-list" class="dynamic-list"></div>
+          <button id="add-ingredient-button" class="add-button" type="button">＋ Adicionar ingrediente</button>
+        </div>
+
+        <div class="editor-section">
+          <h3>👨‍🍳 Modo de preparo</h3>
+          <p>Adicione cada etapa separadamente.</p>
+          <div id="steps-list" class="dynamic-list"></div>
+          <button id="add-step-button" class="add-button" type="button">＋ Adicionar modo de preparo</button>
+        </div>
+
+        <div class="editor-actions">
+          <button class="save-button" type="submit">💾 Salvar receita</button>
+          <button id="cancel-editor-button" class="action-button" type="button">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RECEITA -->
+    <section id="recipe-view" class="view hidden">
+      <div class="editor-head">
+        <button id="back-recipe-button" class="action-button" type="button">← Receitas</button>
+      </div>
+      <article id="recipe-detail" class="recipe-detail"></article>
+    </section>
+  </main>
+
+  <!-- LOGIN -->
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-card login-card">
+      <button class="close-modal" data-close="login-modal" type="button">×</button>
+      <div class="modal-icon">🔐</div>
+      <h2>Área administrativa</h2>
+      <p>Digite a senha para editar o site.</p>
+
+      <form id="login-form">
+        <label class="label" for="admin-password">Senha</label>
+        <input id="admin-password" class="input" type="password" inputmode="numeric" autocomplete="current-password" required placeholder="Senha do administrador">
+        <button class="save-button full" type="submit">Entrar</button>
+      </form>
+
+      <small>A autenticação é validada pelo Supabase Auth.</small>
+    </div>
+  </div>
+
+  <!-- PERSONALIZAÇÃO -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-card settings-card">
+      <button class="close-modal" data-close="settings-modal" type="button">×</button>
+      <div class="modal-icon">🎨</div>
+      <h2>Personalizar site</h2>
+      <p>As alterações ficam salvas no Supabase.</p>
+
+      <div class="settings-grid">
+        <label>Nome do site
+          <input id="set-title" class="input" type="text" maxlength="80">
+        </label>
+
+        <label>Cor do topo
+          <input id="set-topbar" class="color-input" type="color">
+        </label>
+
+        <label>Cor do fundo 1
+          <input id="set-bg1" class="color-input" type="color">
+        </label>
+
+        <label>Cor do fundo 2
+          <input id="set-bg2" class="color-input" type="color">
+        </label>
+
+        <label>Cor dos cartões
+          <input id="set-card" class="color-input" type="color">
+        </label>
+
+        <label>Cor principal dos botões
+          <input id="set-button" class="color-input" type="color">
+        </label>
+
+        <label>Cor do texto
+          <input id="set-text" class="color-input" type="color">
+        </label>
+
+        <label>Fonte
+          <select id="set-font" class="input">
+            <option value="Inter">Inter</option>
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+            <option value="Georgia">Georgia</option>
+            <option value="system-ui">System UI</option>
+          </select>
+        </label>
+
+        <label>Tamanho da fonte
+          <input id="set-size" type="range" min="13" max="20" step="1">
+          <span id="size-value"></span>
+        </label>
+
+        <label>Arredondamento
+          <input id="set-radius" type="range" min="0" max="28" step="1">
+          <span id="radius-value"></span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button id="reset-settings-button" class="action-button" type="button">Restaurar padrão</button>
+        <button id="save-settings-button" class="save-button" type="button">☁ Salvar na nuvem</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
